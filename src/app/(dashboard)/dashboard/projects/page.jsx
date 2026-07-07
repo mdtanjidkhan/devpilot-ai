@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, Button, Chip } from "@heroui/react";
+import { authClient } from "@/lib/auth-client"; // Better Auth 
 import { 
   FolderPlus, 
   Layers, 
@@ -14,21 +16,22 @@ import {
 } from "lucide-react";
 
 export default function ProjectsDashboardPage() {
+  const { data: session, isPending: isAuthLoading } = authClient.useSession(); 
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // =========================================================
-  // ২. ডাটাবেজ থেকে Regex সার্চ কুয়েরি অনুযায়ী প্রজেক্ট ফেচ করা
-  // =========================================================
   useEffect(() => {
     const fetchProjects = async () => {
+      
+      if (!session?.user?.id) return;
+
       try {
         setIsLoading(true);
-        // সার্চকুয়েরি যদি থাকে তবে URL-এ query parameter হিসেবে পাঠানো হচ্ছে
+        const baseUrl = "http://localhost:5000/api/projects";
         const url = searchQuery 
-          ? `http://localhost:5000/api/projects?search=${encodeURIComponent(searchQuery)}`
-          : "http://localhost:5000/api/projects";
+          ? `${baseUrl}?userId=${session.user.id}&search=${encodeURIComponent(searchQuery)}`
+          : `${baseUrl}?userId=${session.user.id}`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -36,7 +39,7 @@ export default function ProjectsDashboardPage() {
         if (data.success) {
           setProjects(data.projects);
         } else {
-          console.error("Failed to load projects from DB");
+          console.error("Failed to load projects from DB:", data.error);
         }
       } catch (error) {
         console.error("Error connecting to backend:", error);
@@ -45,16 +48,20 @@ export default function ProjectsDashboardPage() {
       }
     };
 
-    // একটি Debounce লজিক দিলে ভালো হতো, তবে আপাতত ইউজার টাইপ করার সাথে সাথে রিয়েল-টাইমে রিকোয়েস্ট যাবে
     fetchProjects();
-  }, [searchQuery]); // এখানে searchQuery ডিফেন্ডেন্সি দেওয়াতে প্রতিবার টাইপ করলেই useEffect রান হবে
+  }, [searchQuery, session?.user?.id]); 
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm text-default-400 font-medium">Checking authentication...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12 text-left px-4">
       
-      {/* ========================================================= */}
-      {/* ১. হেডার ও সার্চ বার সেকশন */}
-      {/* ========================================================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-divider/50 pb-5">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
@@ -65,7 +72,7 @@ export default function ProjectsDashboardPage() {
           </p>
         </div>
 
-        <Link href="/create-project">
+        <Link href="/dashboard/create-project">
           <Button 
             color="primary" 
             radius="xl"
@@ -77,7 +84,6 @@ export default function ProjectsDashboardPage() {
         </Link>
       </div>
 
-      {/* সার্চ ইনপুট ফিল্ড (প্রজেক্ট থাকুক বা না থাকুক, সার্চবার সব সময় উপরে থাকবে) */}
       <div className="relative max-w-md w-full">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-default-400" />
         <input 
@@ -89,14 +95,12 @@ export default function ProjectsDashboardPage() {
         />
       </div>
 
-      {/* লোডিং স্টেট হ্যান্ডলিং */}
       {isLoading ? (
         <div className="min-h-[30vh] flex flex-col items-center justify-center gap-3">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm text-default-400 font-medium">Searching database...</p>
         </div>
       ) : projects.length === 0 ? (
-        // যদি ডাটাবেজ একদম ফাঁকা থাকে অথবা সার্চে কোনো কিছু না মেলে
         <div className="min-h-[35vh] flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-divider/60 rounded-3xl max-w-2xl mx-auto space-y-4 bg-background/20 backdrop-blur-sm">
           <div className="p-4 bg-primary/10 text-primary rounded-2xl">
             <Sparkles className="h-8 w-8 text-amber-500 animate-pulse" />
@@ -112,7 +116,7 @@ export default function ProjectsDashboardPage() {
             </p>
           </div>
           {!searchQuery && (
-            <Link href="/create-project" className="pt-2">
+            <Link href="/dashboard/create-project" className="pt-2">
               <Button color="primary" radius="xl" size="sm" className="font-semibold px-5">
                 Create Your First Project
               </Button>
@@ -120,7 +124,6 @@ export default function ProjectsDashboardPage() {
           )}
         </div>
       ) : (
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
             <Card 
@@ -128,7 +131,6 @@ export default function ProjectsDashboardPage() {
               className="border border-divider/50 bg-background/40 hover:bg-background/60 backdrop-blur-md p-5 flex flex-col justify-between h-[230px] group transition-all duration-300 hover:border-primary/40 hover:-translate-y-1" 
               radius="2xl"
             >
-              {/* কার্ডের উপরের অংশ */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-primary tracking-wide bg-primary/10 px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
@@ -149,7 +151,6 @@ export default function ProjectsDashboardPage() {
                 </div>
               </div>
 
-              {/* কার্ডের নিচের অংশ: টেক স্ট্যাক এবং অ্যাকশন বাটন */}
               <div className="flex items-center justify-between border-t border-divider/40 pt-3 mt-auto">
                 <div className="flex gap-1 overflow-hidden max-w-[65%]">
                   {project.selectedTech && project.selectedTech.slice(0, 3).map((tech) => (

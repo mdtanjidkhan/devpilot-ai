@@ -1,8 +1,11 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; 
 import { Button, Card } from "@heroui/react";
+import { authClient } from "@/lib/auth-client"; 
+import toast, { Toaster } from "react-hot-toast";
 import { 
   Plus, 
   Sparkles, 
@@ -16,6 +19,7 @@ import {
 
 export default function CreateProjectPage() {
   const router = useRouter(); 
+  const { data: session } = authClient.useSession(); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [projectName, setProjectName] = useState("");
@@ -24,9 +28,10 @@ export default function CreateProjectPage() {
   const [targetUsers, setTargetUsers] = useState("");
   const [selectedTech, setSelectedTech] = useState([]); 
 
+  const [formErrors, setFormErrors] = useState({});
+
   const categories = ["E-commerce", "SaaS Platform", "FinTech App", "Social Media", "AI/ML Tool", "Portfolio/Website"];
   const techOptions = ["Next.js", "React.js", "Node.js", "MongoDB", "PostgreSQL", "Tailwind CSS"];
-  
   const userTargets = ["Students", "Junior Developers", "Freelancers", "Startup Founders", "Software Engineers"];
 
   const handleTechToggle = (tech) => {
@@ -39,9 +44,25 @@ export default function CreateProjectPage() {
 
   const handleGenerateAI = async (e) => {
     e.preventDefault();
-    if (!projectName.trim() || !category || !description.trim() || !targetUsers) return;
+    let localErrors = {};
+
+    if (!projectName.trim()) localErrors.projectName = "Project name is required";
+    if (!category) localErrors.category = "Please select a category";
+    if (!description.trim()) localErrors.description = "Project description is required";
+    if (!targetUsers) localErrors.targetUsers = "Please select target audience";
+
+    if (Object.keys(localErrors).length > 0) {
+      setFormErrors(localErrors);
+      return;
+    }
+
+    if (!session?.user?.id) {
+      toast.error("You must be logged in to create a project.");
+      return;
+    }
 
     setIsGenerating(true);
+    const toastId = toast.loading("Analyzing requirements and generating blueprint...");
 
     try {
       const response = await fetch("http://localhost:5000/api/generate-blueprint", {
@@ -55,30 +76,31 @@ export default function CreateProjectPage() {
           description,
           targetUsers, 
           selectedTech,
+          userId: session.user.id,
         }),
       });
 
       const data = await response.json();
-     console.log("AI Generation Response:", data);
+      
       if (data.success) {
+        toast.success("Blueprint generated successfully!", { id: toastId });
         setIsGenerating(false);
         setIsModalOpen(false);
         
-        console.log("Database Saved Project ID:", data.projectId);
         router.push(`/dashboard/projects/${data.projectId}`);
-        
       } else {
         throw new Error(data.error || "AI Generation Failed");
       }
     } catch (error) {
       setIsGenerating(false);
       console.error("Frontend Fetch Error:", error);
-      alert(`Error: ${error.message}. Please check if your Backend Server and GEMINI_API_KEY are ready.`);
+      toast.error(error.message || "Something went wrong! Please check backend.", { id: toastId });
     }
   };
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center max-w-5xl mx-auto animate-in fade-in duration-500 px-4">
+      <Toaster position="top-center" />
       
       <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-8 py-8">
         
@@ -100,10 +122,10 @@ export default function CreateProjectPage() {
             onClick={() => setIsModalOpen(true)}
             color="primary" 
             size="lg"
-            className="font-semibold shadow-xl shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 px-8 py-6 text-base w-full md:w-auto rounded-none"
+            className="font-semibold shadow-xl shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 px-8 py-6 text-base w-full md:w-auto rounded-xl"
             startContent={<Plus className="h-5 w-5 text-white" />}
           >
-           + Create Project
+            Create Project
           </Button>
         </div>
       </div>
@@ -130,65 +152,96 @@ export default function CreateProjectPage() {
             </div>
 
             <form onSubmit={handleGenerateAI} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 text-left">
+              
+              {/* Project Name Field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-default-400 uppercase tracking-wider">Project Name <span className="text-danger">*</span></label>
+                <label className="text-xs font-semibold text-default-400 uppercase tracking-wider">Project Name *</label>
                 <input 
                   type="text" 
-                  required
                   value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
+                  onChange={(e) => {
+                    setProjectName(e.target.value);
+                    if (formErrors.projectName) setFormErrors({...formErrors, projectName: null});
+                  }}
                   placeholder="e.g., KinKeeper Core" 
-                  className="w-full bg-default-100/50 border border-divider/50 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
+                  className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground ${
+                    formErrors.projectName ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
+                  }`}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
-                  <Layers className="h-3 w-3" /> Category <span className="text-danger">*</span>
-                </label>
-                <select
-                  required
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-default-100/50 border border-divider/50 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors text-foreground appearance-none cursor-pointer"
-                >
-                  <option value="" disabled className="bg-background">Select project category</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat} className="bg-background">{cat}</option>
-                  ))}
-                </select>
+                {formErrors.projectName && <p className="text-xs text-red-500 pl-1">{formErrors.projectName}</p>}
               </div>
 
+              {/* Category Field */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
-                  <FileText className="h-3 w-3" /> Project Description <span className="text-danger">*</span>
+                  <Layers className="h-3 w-3" /> Category *
+                </label>
+                <div className="relative">
+                  <select
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      if (formErrors.category) setFormErrors({...formErrors, category: null});
+                    }}
+                    className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
+                      formErrors.category ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
+                    }`}
+                  >
+                    <option value="" disabled className="bg-background">Select project category</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat} className="bg-background">{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                {formErrors.category && <p className="text-xs text-red-500 pl-1">{formErrors.category}</p>}
+              </div>
+
+              {/* Project Description Field */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
+                  <FileText className="h-3 w-3" /> Project Description *
                 </label>
                 <textarea 
                   rows="3" 
-                  required
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (formErrors.description) setFormErrors({...formErrors, description: null});
+                  }}
                   placeholder="Explain the features, core logic, and overall goals of the software..." 
-                  className="w-full bg-default-100/50 border border-divider/50 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors text-foreground resize-none leading-relaxed"
+                  className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground resize-none leading-relaxed ${
+                    formErrors.description ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
+                  }`}
                 />
+                {formErrors.description && <p className="text-xs text-red-500 pl-1">{formErrors.description}</p>}
               </div>
 
+              {/* Target Users Field */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
-                  <Target className="h-3 w-3" /> Target Users <span className="text-danger">*</span>
+                  <Target className="h-3 w-3" /> Target Users *
                 </label>
-                <select
-                  required
-                  value={targetUsers}
-                  onChange={(e) => setTargetUsers(e.target.value)}
-                  className="w-full bg-default-100/50 border border-divider/50 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors text-foreground appearance-none cursor-pointer"
-                >
-                  <option value="" disabled className="bg-background">Select target audience</option>
-                  {userTargets.map((target) => (
-                    <option key={target} value={target} className="bg-background">{target}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={targetUsers}
+                    onChange={(e) => {
+                      setTargetUsers(e.target.value);
+                      if (formErrors.targetUsers) setFormErrors({...formErrors, targetUsers: null});
+                    }}
+                    className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
+                      formErrors.targetUsers ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
+                    }`}
+                  >
+                    <option value="" disabled className="bg-background">Select target audience</option>
+                    {userTargets.map((target) => (
+                      <option key={target} value={target} className="bg-background">{target}</option>
+                    ))}
+                  </select>
+                </div>
+                {formErrors.targetUsers && <p className="text-xs text-red-500 pl-1">{formErrors.targetUsers}</p>}
               </div>
 
+              {/* Tech Stack Options Field */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
@@ -222,6 +275,7 @@ export default function CreateProjectPage() {
                 </div>
               </div>
 
+              {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-divider shrink-0">
                 <Button 
                   variant="light" 

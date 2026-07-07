@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }) {
                     <Icon className={`h-4 w-4 ${isActive(item.href) ? "text-primary" : "text-default-400 group-hover:text-foreground"}`} />
                     <span>{item.name}</span>
                   </div>
-                  {isActive(item.href) && <ChevronRight className="h-4 w-4" />}
+                  {isActive(item.href) && <ChevronRight className="h-4 w-4 text-green-600" />}
                 </Link>
               );
             })}
