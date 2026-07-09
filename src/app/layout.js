@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { HeroUIProvider } from "@/components/theme/HeroUIProvider";
 import Navbar from "@/components/ui/Navbar";
+import Footer from "@/components/ui/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }) {
           <main className="flex-1 flex flex-col">
             {children}
           </main>
+          <Footer></Footer>
         </HeroUIProvider>
       </body>
     </html>

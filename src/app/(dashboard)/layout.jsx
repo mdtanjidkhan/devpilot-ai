@@ -12,7 +12,8 @@ import {
   PlusCircle,
   ChevronRight,
   User,
-  X
+  X,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@heroui/react";
 
@@ -31,6 +32,7 @@ export default function DashboardLayout({ children }) {
     { name: "My Projects", href: "/dashboard/projects", icon: FolderKanban },
     { name: "Create Project", href: "/dashboard/create-project", icon: PlusCircle }, // 
     { name: "AI History", href: "/dashboard/history", icon: History },
+    { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard  },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];

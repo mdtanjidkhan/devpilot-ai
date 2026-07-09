@@ -58,7 +58,7 @@ export default function Navbar() {
             </Button>
 
             <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-primary">
-              <Terminal className="h-5 w-5" />
+              <Terminal className="h-5 w-5 hidden md:block" />
               <span>DevPilot <span className="text-foreground/80 font-medium text-lg">AI</span></span>
             </Link>
             
@@ -167,7 +167,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
               <Link
                 href="/dashboard"
-                className="hidden md:flex items-center gap-1.5 text-sm font-medium text-default-600 hover:text-primary transition-colors"
+                className="hidden md:flex items-center gap-1.5 text-sm font-medium text-default-600 hover:text-blue-500 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard

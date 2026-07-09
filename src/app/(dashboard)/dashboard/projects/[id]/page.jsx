@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, Button, Chip } from "@heroui/react";
 import toast, { Toaster } from "react-hot-toast";
+import { authClient } from "@/lib/auth-client";
 import { 
   Sparkles, 
   Save, 
@@ -39,6 +40,7 @@ export default function ProjectWorkspacePage() {
   const [generations, setGenerations] = useState([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [newPrompt, setNewPrompt] = useState("");
+  const { data: session } = authClient.useSession();
 
   useEffect(() => {
     if (!id) return;
@@ -116,7 +118,7 @@ export default function ProjectWorkspacePage() {
     }
   };
 
-  const handleSendPrompt = async (e) => {
+ const handleSendPrompt = async (e) => {
     e.preventDefault();
     if (!newPrompt.trim() || isChatLoading) return;
 
@@ -124,11 +126,25 @@ export default function ProjectWorkspacePage() {
     setNewPrompt("");
     setIsChatLoading(true);
 
+    let detectedType = "Full Blueprint"; 
+    const lowerPrompt = userPrompt.toLowerCase();
+    if (lowerPrompt.includes("schema") || lowerPrompt.includes("database") || lowerPrompt.includes("model") || lowerPrompt.includes("mongodb")) {
+      detectedType = "Database";
+    } else if (lowerPrompt.includes("api") || lowerPrompt.includes("route") || lowerPrompt.includes("backend") || lowerPrompt.includes("controller")) {
+      detectedType = "API";
+    } else if (lowerPrompt.includes("readme") || lowerPrompt.includes("documentation") || lowerPrompt.includes("doc")) {
+      detectedType = "README";
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/projects/${id}/generations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: userPrompt }),
+        body: JSON.stringify({ 
+          prompt: userPrompt,
+          generationType: detectedType,
+          user: session?.user ? { name: session.user.name, id: session.user.id } : null
+        }),
       });
 
       const data = await response.json();
@@ -364,6 +380,7 @@ export default function ProjectWorkspacePage() {
           </Card>
 
         </div>
+        {/* devpilt -ai promt chart */}
         <div className="md:col-span-12 lg:col-span-4 h-[550px] lg:h-[75vh] lg:sticky lg:top-20 flex flex-col">
           <Card className="border border-divider/50 bg-background/40 backdrop-blur-md flex-1 flex flex-col overflow-hidden" radius="xl">
             
