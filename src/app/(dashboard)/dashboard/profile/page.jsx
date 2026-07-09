@@ -207,7 +207,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Top Grid */}
+        {/* Top Grid  */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Left Live Preview Card */}
@@ -278,7 +278,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Right Form Block */}
+          {/* Right Form Block now*/}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="bg-slate-800/20 border border-slate-700/50 rounded-2xl p-6 md:p-8 shadow-xl backdrop-blur-md space-y-8">
               
