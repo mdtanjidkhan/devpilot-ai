@@ -89,7 +89,7 @@ export default function ProfilePage() {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🛠️ Skills Array Input
+  // Skills Array Input
   const handleAddSkill = (e) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
