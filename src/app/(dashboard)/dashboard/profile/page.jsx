@@ -104,7 +104,7 @@ export default function ProfilePage() {
     setProfile((prev) => ({ ...prev, skills: prev.skills.filter((s) => s !== skillToRemove) }));
   };
 
-  // 🛠️ Preferred Tech Array Input
+  //  Preferred Tech Array Input
   const handleAddTech = (e) => {
     if (e.key === "Enter" && techInput.trim()) {
       e.preventDefault();
