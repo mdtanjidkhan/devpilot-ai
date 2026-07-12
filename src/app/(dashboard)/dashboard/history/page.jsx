@@ -46,7 +46,7 @@ export default function AIHistoryPage() {
   const fetchHistory = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("http://localhost:5000/api/generations");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations`);
       const data = await res.json();
       
       if (data.success) {
@@ -117,7 +117,7 @@ export default function AIHistoryPage() {
     if (!window.confirm("Are you sure you want to delete this log from history permanently?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/generations/${id}`, { method: "DELETE" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations/${id}`, { method: "DELETE" });
       const data = await res.json();
       
       if (data.success) {
@@ -136,7 +136,7 @@ export default function AIHistoryPage() {
     if (!editText.trim()) return;
     setIsActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/generations/${activeItem._id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations/${activeItem._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ generatedOutput: editText })
@@ -163,7 +163,7 @@ export default function AIHistoryPage() {
     setIsActionLoading(true);
     toast.loading("Regenerating response from Gemini...", { id: "regen" });
     try {
-      const res = await fetch(`http://localhost:5000/api/generations/${id}/regenerate`, { method: "POST" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations/${id}/regenerate`, { method: "POST" });
       const data = await res.json();
 
       if (data.success) {

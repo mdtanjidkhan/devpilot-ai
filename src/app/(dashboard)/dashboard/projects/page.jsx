@@ -28,7 +28,7 @@ export default function ProjectsDashboardPage() {
 
       try {
         setIsLoading(true);
-        const baseUrl = "http://localhost:5000/api/projects";
+        const baseUrl = `${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects`;
         const url = searchQuery 
           ? `${baseUrl}?userId=${session.user.id}&search=${encodeURIComponent(searchQuery)}`
           : `${baseUrl}?userId=${session.user.id}`;
@@ -166,7 +166,7 @@ export default function ProjectsDashboardPage() {
                     size="sm" 
                     radius="full" 
                     variant="flat"
-                    className="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all"
+                    className="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-blue-500 transition-all"
                   >
                     <ArrowRight className="h-4 w-4" />
                   </Button>

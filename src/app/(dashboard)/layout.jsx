@@ -32,7 +32,6 @@ export default function DashboardLayout({ children }) {
     { name: "My Projects", href: "/dashboard/projects", icon: FolderKanban },
     { name: "Create Project", href: "/dashboard/create-project", icon: PlusCircle }, // 
     { name: "AI History", href: "/dashboard/history", icon: History },
-    { name: "Billing & Plans", href: "/dashboard/billing", icon: CreditCard  },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
@@ -90,7 +89,7 @@ export default function DashboardLayout({ children }) {
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="flex items-center justify-between px-6 pb-4 border-b border-divider">
-          <span className="font-bold text-lg text-primary">Navigation</span>
+          <span className="font-bold text-lg text-blue-500">DevPilot AI</span>
           <Button isIconOnly variant="light" radius="full" onClick={() => setIsMobileSidebarOpen(false)}>
             <X className="h-5 w-5" />
           </Button>

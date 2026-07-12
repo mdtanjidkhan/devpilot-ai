@@ -40,7 +40,7 @@ export default function ProfilePage() {
   const fetchProfileData = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/profile/${session.user.id}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/profile/${session.user.id}`);
       const data = await res.json();
 
       if (data.success) {
@@ -143,7 +143,7 @@ export default function ProfilePage() {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/profile/update", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/profile/update`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

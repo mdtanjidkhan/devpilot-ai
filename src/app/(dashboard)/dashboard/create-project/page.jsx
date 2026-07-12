@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,14 +15,24 @@ import {
   Target, 
   FileText, 
   Laptop, 
-  Check 
+  Check,
+  ChevronDown 
 } from "lucide-react";
 
 export default function CreateProjectPage() {
   const router = useRouter(); 
   const { data: session } = authClient.useSession(); 
+  
+  // Modals and Loading States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
+  
+  // Project Limits State
+  const [projectCount, setProjectCount] = useState(0);
+
+  // Form Field States
   const [projectName, setProjectName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -33,6 +44,37 @@ export default function CreateProjectPage() {
   const categories = ["E-commerce", "SaaS Platform", "FinTech App", "Social Media", "AI/ML Tool", "Portfolio/Website"];
   const techOptions = ["Next.js", "React.js", "Node.js", "MongoDB", "PostgreSQL", "Tailwind CSS"];
   const userTargets = ["Students", "Junior Developers", "Freelancers", "Startup Founders", "Software Engineers"];
+
+  // Fetch current user project count from backend
+  useEffect(() => {
+    const fetchProjectCount = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/count?userId=${session.user.id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setProjectCount(data.count);
+        }
+      } catch (error) {
+        console.error("Frontend Count Fetch Error:", error);
+      } finally {
+        setIsLoadingCount(false);
+      }
+    };
+
+    fetchProjectCount();
+  }, [session?.user?.id]);
+
+  // Handle Main Create Action Trigger
+  const handleCreateClick = () => {
+    if (projectCount >= 5) {
+      setIsLimitModalOpen(true);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
 
   const handleTechToggle = (tech) => {
     if (selectedTech.includes(tech)) {
@@ -61,11 +103,18 @@ export default function CreateProjectPage() {
       return;
     }
 
+    // Double check on submission runtime
+    if (projectCount >= 5) {
+      setIsModalOpen(false);
+      setIsLimitModalOpen(true);
+      return;
+    }
+
     setIsGenerating(true);
     const toastId = toast.loading("Analyzing requirements and generating blueprint...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/generate-blueprint", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generate-blueprint`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,6 +136,7 @@ export default function CreateProjectPage() {
         setIsGenerating(false);
         setIsModalOpen(false);
         
+        // Optimistically increment local count or redirect directly
         router.push(`/dashboard/projects/${data.projectId}`);
       } else {
         throw new Error(data.error || "AI Generation Failed");
@@ -119,17 +169,19 @@ export default function CreateProjectPage() {
 
         <div className="shrink-0 w-full md:w-auto">
           <Button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleCreateClick}
+            isLoading={isLoadingCount}
             color="primary" 
             size="lg"
             className="font-semibold shadow-xl shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 px-8 py-6 text-base w-full md:w-auto rounded-xl"
-            startContent={<Plus className="h-5 w-5 text-white" />}
+            startContent={!isLoadingCount && <Plus className="h-5 w-5 text-white" />}
           >
             Create Project
           </Button>
         </div>
       </div>
 
+      {/* Main Creation Form Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isGenerating && setIsModalOpen(false)} />
@@ -176,14 +228,14 @@ export default function CreateProjectPage() {
                 <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
                   <Layers className="h-3 w-3" /> Category *
                 </label>
-                <div className="relative">
+                <div className="relative flex items-center">
                   <select
                     value={category}
                     onChange={(e) => {
                       setCategory(e.target.value);
                       if (formErrors.category) setFormErrors({...formErrors, category: null});
                     }}
-                    className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
+                    className={`w-full bg-default-100/50 border rounded-xl pl-3.5 pr-10 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
                       formErrors.category ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
                     }`}
                   >
@@ -192,6 +244,9 @@ export default function CreateProjectPage() {
                       <option key={cat} value={cat} className="bg-background">{cat}</option>
                     ))}
                   </select>
+                  <div className="absolute right-3.5 pointer-events-none text-default-400">
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
                 </div>
                 {formErrors.category && <p className="text-xs text-red-500 pl-1">{formErrors.category}</p>}
               </div>
@@ -221,14 +276,14 @@ export default function CreateProjectPage() {
                 <label className="text-xs font-semibold text-default-400 uppercase tracking-wider flex items-center gap-1">
                   <Target className="h-3 w-3" /> Target Users *
                 </label>
-                <div className="relative">
+                <div className="relative flex items-center">
                   <select
                     value={targetUsers}
                     onChange={(e) => {
                       setTargetUsers(e.target.value);
                       if (formErrors.targetUsers) setFormErrors({...formErrors, targetUsers: null});
                     }}
-                    className={`w-full bg-default-100/50 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
+                    className={`w-full bg-default-100/50 border rounded-xl pl-3.5 pr-10 py-2.5 text-sm focus:outline-none transition-colors text-foreground appearance-none cursor-pointer ${
                       formErrors.targetUsers ? "border-red-500 focus:border-red-500" : "border-divider/50 focus:border-primary"
                     }`}
                   >
@@ -237,6 +292,9 @@ export default function CreateProjectPage() {
                       <option key={target} value={target} className="bg-background">{target}</option>
                     ))}
                   </select>
+                  <div className="absolute right-3.5 pointer-events-none text-default-400">
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
                 </div>
                 {formErrors.targetUsers && <p className="text-xs text-red-500 pl-1">{formErrors.targetUsers}</p>}
               </div>
@@ -298,6 +356,50 @@ export default function CreateProjectPage() {
               </div>
 
             </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Premium Upgrade Limit Warning Modal */}
+      {isLimitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsLimitModalOpen(false)} />
+          
+          <Card className="relative w-full max-w-md border border-divider bg-background shadow-2xl z-10 p-6 animate-in zoom-in-95 duration-200 text-center" radius="2xl">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="p-4 bg-amber-500/10 rounded-full text-amber-500">
+                <Sparkles className="h-8 w-8 animate-bounce" />
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-foreground">Upgrade to Premium</h3>
+                <p className="text-sm text-default-400 leading-relaxed">
+                  You have reached your free limit of <strong>5 projects</strong>. Please upgrade to Premium to architect unlimited software blueprints!
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full pt-2">
+                <Button 
+                  variant="light" 
+                  radius="xl" 
+                  className="font-medium w-full sm:w-auto flex-1"
+                  onClick={() => setIsLimitModalOpen(false)}
+                >
+                  Maybe Later
+                </Button>
+                <Button 
+                  color="primary" 
+                  radius="xl" 
+                  className="font-medium bg-gradient-to-r from-amber-500 to-orange-600 shadow-lg shadow-orange-500/20 w-full sm:w-auto flex-1 text-white"
+                  onClick={() => {
+                    setIsLimitModalOpen(false);
+                    router.push('/dashboard/settings?tab=subscription');
+                  }}
+                >
+                  Upgrade Now
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
       )}

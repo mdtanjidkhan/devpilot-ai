@@ -49,7 +49,7 @@ export default function ProjectWorkspacePage() {
       try {
         setIsLoading(true);
         
-        const projectRes = await fetch(`http://localhost:5000/api/projects/${id}`);
+        const projectRes = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}`);
         const projectData = await projectRes.json();
 
         if (projectData.success) {
@@ -62,7 +62,7 @@ export default function ProjectWorkspacePage() {
         }
 
         // ২. AI Generations (Chat History)
-        const chatRes = await fetch(`http://localhost:5000/api/projects/${id}/generations`);
+        const chatRes = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}/generations`);
         const chatData = await chatRes.json();
         if (chatData.success) {
           setGenerations(chatData.generations);
@@ -92,7 +92,7 @@ export default function ProjectWorkspacePage() {
     if (sectionName === "schemaDesign") updatedValue = tempSchema;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ section: sectionName, value: updatedValue }),
@@ -137,7 +137,7 @@ export default function ProjectWorkspacePage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/projects/${id}/generations`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}/generations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -163,11 +163,11 @@ export default function ProjectWorkspacePage() {
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this project permanently?");
-    if (!confirmDelete) return;
+    // const confirmDelete = window.confirm("Are you sure you want to delete this project permanently?");
+    // if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/projects/${id}`, { method: "DELETE" });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}`, { method: "DELETE" });
       const data = await response.json();
 
       if (data.success) {
