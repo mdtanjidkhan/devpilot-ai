@@ -360,7 +360,7 @@ export default function CreateProjectPage() {
         </div>
       )}
 
-      {/* Premium Upgrade Limit Warning Modal */}
+      {/* Premium Upgrade Limit Warning Modal open */}
       {isLimitModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsLimitModalOpen(false)} />
