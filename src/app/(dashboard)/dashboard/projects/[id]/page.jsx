@@ -92,9 +92,13 @@ export default function ProjectWorkspacePage() {
     if (sectionName === "schemaDesign") updatedValue = tempSchema;
 
     try {
+       const { data: tokenData } = await authClient.token();
+      console.log(tokenData,"tokendata")
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+         authorization: `Bearer ${tokenData?.token}`
+         },
         body: JSON.stringify({ section: sectionName, value: updatedValue }),
       });
 
@@ -137,9 +141,13 @@ export default function ProjectWorkspacePage() {
     }
 
     try {
+       const { data: tokenData } = await authClient.token();
+         console.log(tokenData,"tokendata")
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects/${id}/generations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+         authorization: `Bearer ${tokenData?.token}`
+         },
         body: JSON.stringify({ 
           prompt: userPrompt,
           generationType: detectedType,

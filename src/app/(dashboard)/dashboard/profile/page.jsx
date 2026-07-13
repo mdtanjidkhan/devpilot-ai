@@ -143,9 +143,13 @@ export default function ProfilePage() {
   }
 
   try {
+     const { data: tokenData } = await authClient.token();
+      console.log(tokenData,"tokendata")
     const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/profile/update`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+         authorization: `Bearer ${tokenData?.token}`
+       },
       body: JSON.stringify({
         userId: session.user.id,
         bio: profile.bio,

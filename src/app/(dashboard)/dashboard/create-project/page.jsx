@@ -114,10 +114,14 @@ export default function CreateProjectPage() {
     const toastId = toast.loading("Analyzing requirements and generating blueprint...");
 
     try {
+      const { data: tokenData } = await authClient.token();
+      console.log(tokenData,"tokendata")
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generate-blueprint`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${tokenData?.token}`
+         
         },
         body: JSON.stringify({
           projectName,

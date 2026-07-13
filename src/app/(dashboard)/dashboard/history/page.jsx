@@ -136,9 +136,13 @@ export default function AIHistoryPage() {
     if (!editText.trim()) return;
     setIsActionLoading(true);
     try {
+       const { data: tokenData } = await authClient.token();
+      console.log(tokenData,"tokendata")
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations/${activeItem._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+           authorization: `Bearer ${tokenData?.token}`
+         },
         body: JSON.stringify({ generatedOutput: editText })
       });
       const data = await res.json();

@@ -35,7 +35,7 @@ export default function Hero() {
           </p>
 
         
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 w-full">
+          <div className="flex flex-wrap  items-center justify-center lg:justify-start gap-4 pt-2 w-full">
             {isPending ? (
               
               <div className="h-12 w-36 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-full" />
