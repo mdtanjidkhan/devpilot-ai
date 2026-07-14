@@ -114,7 +114,7 @@ export default function AIHistoryPage() {
 
   // action ৫: DELETE logic
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this log from history permanently?")) return;
+    // if (!window.confirm("Are you sure you want to delete this log from history permanently?")) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/generations/${id}`, { method: "DELETE" });

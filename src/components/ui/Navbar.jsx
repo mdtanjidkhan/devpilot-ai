@@ -12,10 +12,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]); 
+  const [mounted, setMounted] = useState(false); 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -33,50 +30,6 @@ export default function Navbar() {
       fetchNotifications();
     }
   }, [mounted, user?.id, pathname]);
-  // useEffect(() => {
-  //   const delayDebounceFn = setTimeout(() => {
-  //     if (searchQuery.trim() !== "") {
-  //       fetchSearchResults(searchQuery);
-  //     } else {
-  //       setSearchResults([]); 
-  //       fetchAllProjectsBack();
-  //     }
-  //   }, 400); 
-
-  //   return () => clearTimeout(delayDebounceFn);
-  // }, [searchQuery]);
-
-  // const fetchAllProjectsBack = async () => {
-  //   if (!user?.id) return;
-  //   try {
-  //     const res = await fetch(`http://localhost:5000/api/projects?userId=${user?.id}`);
-  //     const data = await res.json();
-  //     if (data.success && typeof window !== "undefined") {
-  //       window.dispatchEvent(new CustomEvent("project-search-results", { detail: data.projects }));
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  const fetchSearchResults = async (query) => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_SITE_URL}/api/projects?userId=${user?.id}&search=${query}`);
-      const data = await res.json();
-      console.log("Search Result from DB:", data); 
-      
-      if (data.success) {
-        setSearchResults(data.projects); 
-         console.log("Projects:", data.projects);
-console.log("Is Array:", Array.isArray(data.projects));
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("project-search-results", { detail: data.projects }));
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch search results:", err);
-    }
-  };
 
   const fetchNotifications = async () => {
     try {
