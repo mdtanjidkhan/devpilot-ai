@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useTheme } from "next-themes";
 import { 
   User, 
   Sparkles, 
@@ -43,7 +44,7 @@ export default function SettingsPage() {
   const [aiLanguage, setAiLanguage] = useState("English");
   const [aiFormat, setAiFormat] = useState("Markdown");
   const [creativity, setCreativity] = useState("Medium");
-  const [theme, setTheme] = useState("system");
+  const { theme, setTheme } = useTheme();
   const [emailNotif, setEmailNotif] = useState(true);
   const [aiCompletedNotif, setAiCompletedNotif] = useState(true);
   const [productUpdateNotif, setProductUpdateNotif] = useState(false);
@@ -169,7 +170,7 @@ export default function SettingsPage() {
   // --- Better Auth: Revoke All Sessions Function ---
   const handleAllDeviceLogout = async () => {
     // const confirmLogout = window.confirm("Are you sure you want to sign out from all active sessions and devices?");
-    if (!confirmLogout) return;
+    // if (!confirmLogout) return;
 
     setIsLoggingOut(true);
     try {
@@ -597,6 +598,4 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-
 
